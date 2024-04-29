@@ -1,0 +1,15 @@
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\bin\Debug\net7.0\Fasor.exe
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\bin\Debug\net7.0\Fasor.deps.json
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\bin\Debug\net7.0\Fasor.runtimeconfig.json
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\bin\Debug\net7.0\Fasor.dll
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\bin\Debug\net7.0\Fasor.pdb
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\obj\Debug\net7.0\Fasor.csproj.AssemblyReference.cache
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\obj\Debug\net7.0\Fasor.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\obj\Debug\net7.0\Fasor.AssemblyInfoInputs.cache
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\obj\Debug\net7.0\Fasor.AssemblyInfo.cs
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\obj\Debug\net7.0\Fasor.csproj.CoreCompileInputs.cache
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\obj\Debug\net7.0\Fasor.dll
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\obj\Debug\net7.0\refint\Fasor.dll
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\obj\Debug\net7.0\Fasor.pdb
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\obj\Debug\net7.0\Fasor.genruntimeconfig.cache
+C:\Users\PauloVictor\Desktop\Learning C#\Fasor\obj\Debug\net7.0\ref\Fasor.dll
