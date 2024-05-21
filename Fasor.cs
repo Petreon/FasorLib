@@ -88,6 +88,27 @@ namespace Fasor
             return degree * (180 / Math.PI);
         }
 
+        public static Fasor Parallel(Fasor num1, Fasor num2)
+        {
+            Fasor upside = Fasor.Multiply(num1, num2);
+            Fasor downside = Fasor.Sum(num1, num2);
+            Fasor result = Fasor.Divide(upside, downside);
+
+            return new Fasor(result.module, result.fase_degree);
+        }
+
+        public static Fasor Tension_Divisor(Fasor Z1, Fasor Z2, Fasor Tension)
+        {
+
+            Fasor upside = Z1;
+            Fasor downside = Fasor.Sum(Z1, Z2);
+            Fasor result1 = Fasor.Divide(upside, downside);
+            Fasor result2 = Fasor.Multiply(result1, Tension);
+
+            return new Fasor(result2.module, result2.fase_degree);
+
+        }
+
         #endregion
 
         #region Public_Methods
@@ -116,6 +137,11 @@ namespace Fasor
                 Console.WriteLine($"Module: {this.module} , Fase: {this.fase_degree}");
 
             }
+        }
+
+        public string FasorString(string unit = "")
+        {
+            return $"Module: {Math.Round(this.module,3).ToString()} {unit} , Fase: {Math.Round(this.fase_degree, 3).ToString()}°";
         }
 
 

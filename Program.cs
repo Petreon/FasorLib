@@ -1,98 +1,116 @@
-﻿namespace Fasor
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ClosedXML;
+
+namespace Fasor
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            // constants
-            Fasor R1 = new Fasor(2200, 0);
-            Fasor R2 = new Fasor(1000, 0);
-            Fasor Vt = new Fasor(3, 0);
-            double[] frequency = { 100, 500, 1000, 2000, 10000 };
-            double c11_constant = 0.01e-6;//microfarad
-            double c15_constant = 0.05e-6;
-            double c2_constant = 0.022e-6;
+            //RC serie
 
+            double[] frequency = { 100, 500, 800, 1000, 1200, 2000, 5000, 10000 };
+            Fasor tensionFont  = new Fasor(5,0); //5V amplitute
+            Fasor Resistency1 = new Fasor (68e3,0); //68k
+            double Capacitance = 0.0022e-6; // 2,2nF
 
+            //first calculate the impedance of XC
+            List<Fasor> Xc = new List<Fasor>(); //capacitance
 
-            List<Fasor> C11_list = new List<Fasor>();
-            List<Fasor> C15_list = new List<Fasor>();
-            List<Fasor> C2_list = new List<Fasor>();
-
-
-
-            //initialize the capacitors
-            for(int i = 0; i < 5; i++)
+            for(int i = 0; i < frequency.Length; i++)
             {
-                double XC11_absolute = 1 / (2 * Math.PI * frequency[i] * c11_constant);
-                Fasor XC11 = new Fasor(XC11_absolute, -90);
-                C11_list.Add(XC11);
-
-                double XC15_absolute = 1 / (2 * Math.PI * frequency[i] * c15_constant);
-                Fasor XC15 = new Fasor(XC15_absolute, -90);
-                C15_list.Add(XC15);
-
-                double XC2_absolute = 1 / (2 * Math.PI * frequency[i] * c2_constant);
-                Fasor XC2 = new Fasor(XC2_absolute, -90);
-                C2_list.Add(XC2);
+                Fasor bufferXC = new Fasor(1/(2 * 3.14 * frequency[i] * Capacitance), -90);
+                Xc.Add(bufferXC);
             }
 
-            List<Fasor> Z11Req_list = new List<Fasor>();
-            List<Fasor> Z15Req_list = new List<Fasor>();
-            List<Fasor> Z2Req_list = new List<Fasor>();
-
-            for(int i = 0; i < 5;i++)
+            //list of tension divisor
+            List<Fasor> Vc = new List<Fasor>();
+            for(int i = 0; i < Xc.Count; i++)
             {
-                Fasor R1_C11 = Parallel(R1, C11_list[i]);
-                //R1_C11.Print($"Z11 eq: {frequency[i]}Hz");
-                Fasor R1_C15 = Parallel(R1, C15_list[i]);
-                //R1_C15.Print($"Z15 eq: {frequency[i]}Hz");
-                Fasor R2_C2 = Parallel(R2, C2_list[i]);
-                //R2_C2.Print($"Z2 eq: {frequency[i]}Hz");
-
-                Z11Req_list.Add(R1_C11);
-                Z15Req_list.Add(R1_C15);
-                Z2Req_list.Add(R2_C2);
-
+                Fasor bufferVc = Fasor.Tension_Divisor(Xc[i], Resistency1, tensionFont);
+                Vc.Add(bufferVc);
             }
 
-            List<Fasor> V0_list = new List<Fasor>();
-
-            for(int i = 0; i < 5;i++)
+            List<Fasor> VR = new List<Fasor>();
+            for (int i = 0; i < Xc.Count; i++)
             {
-                Fasor Queda_V = Tension_Divisor(Z2Req_list[i], Z11Req_list[i], Vt);
-                V0_list.Add(Queda_V);
-                V0_list[i].Print($"V0 em C1 = 0.01uF; Frequencia = {frequency[i]}Hz");
+                Fasor bufferVR = Fasor.Tension_Divisor(Resistency1, Xc[i], tensionFont);
+                VR.Add(bufferVR);
             }
 
-            for (int i = 0; i < 5; i++)
+            // printing the Fasors
+            for(int i = 0; i < Xc.Count; i++)
             {
-                Fasor Queda_V = Tension_Divisor(Z2Req_list[i], Z15Req_list[i], Vt);
-                V0_list.Add(Queda_V);
-                V0_list[i+5].Print($"V0 em C1 = 0.05uF; Frequencia = {frequency[i]}Hz");
-
+                Console.WriteLine($"Freq = {frequency[i]}, VC: {Vc[i].FasorString("V")} || VR: {VR[i].FasorString("V")}");
             }
+            Console.WriteLine("");
+
+
+            for (int i = 0;i < frequency.Length; i++)
+            {
+
+                Console.WriteLine($"{frequency[i]}Hz -> Passa baixa(Capacitor) Decibel = {Math.Round(Decibel_RC_Capacitor(Resistency1.real, Capacitance, frequency[i]),2)}dB");
+                Console.WriteLine($"{frequency[i]}Hz -> Passa Alta(Resistor) Decibel = {Math.Round(Decibel_RC_Resistor(Resistency1.real, Capacitance, frequency[i]),2)}dB");
+                Console.WriteLine("");
+            }
+
+            //EXCEL PART
+
+            using (var workbook = new ClosedXML.Excel.XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Sample Sheet");
+                
+                for(int i = 0;i < frequency.Length; i++)
+                {
+                    worksheet.Cell($"A{i+1}").Value = frequency[i];
+                    worksheet.Cell($"B{i+1}").Value = Math.Round(Vc[i].module,2);
+                    worksheet.Cell($"C{i+1}").Value = Math.Round(Vc[i].fase_degree,2);
+                    worksheet.Cell($"D{i+1}").Value = Math.Round(VR[i].module,2);
+                    worksheet.Cell($"E{i+1}").Value = Math.Round(VR[i].fase_degree, 2);
+                    worksheet.Cell($"F{i+1}").Value = Math.Round(Decibel_RC_Capacitor(Resistency1.real, Capacitance, frequency[i]), 2);
+                    worksheet.Cell($"G{i+1}").Value = Math.Round(Decibel_RC_Resistor(Resistency1.real, Capacitance, frequency[i]), 2);
+
+                }
+
+                workbook.SaveAs("Teste.xlsx");
+            }
+
+
+                return;
         }
 
-        public static Fasor Parallel(Fasor num1, Fasor num2)
+        static double Decibel_RC_Capacitor(double ResistencyValue,double CapacitorValue,double frequencyValue )
         {
-            Fasor upside = Fasor.Multiply(num1, num2);
-            Fasor downside = Fasor.Sum(num1, num2);
-            Fasor result = Fasor.Divide(upside, downside);
+            //the H(s) = 1/(jwRC + 1) 
+            //module = pow(wRC,2) + pow(wRC,2)
+            double rads = 2 * Math.PI * frequencyValue;
+            double constant = ResistencyValue * CapacitorValue * rads;
 
-            return new Fasor(result.module, result.fase_degree);
+            double module = Math.Sqrt(Math.Pow(constant, 2) + Math.Pow(1, 2));
+
+            return -( 20 * Math.Log10(module));
+
         }
 
-        public static Fasor Tension_Divisor(Fasor Z1, Fasor Z2, Fasor Tension)
+        static double Decibel_RC_Resistor(double ResistencyValue, double CapacitorValue, double frequencyValue)
         {
+            //passa alta
+            //H(s) = RCjw / (RCjw + 1)
+            // dB = 20log(w) - 20log(jw + 1/RC)
 
-            Fasor upside = Z1;
-            Fasor downside = Fasor.Sum(Z1, Z2);
-            Fasor result1 = Fasor.Divide(upside, downside);
-            Fasor result2 = Fasor.Multiply(result1, Tension);
+            double rads = 2 * Math.PI * frequencyValue;
+            double constant = ResistencyValue * CapacitorValue * rads;
 
-            return new Fasor(result2.module, result2.fase_degree);
+            double module = Math.Sqrt(Math.Pow(constant, 2) + Math.Pow(1, 2));
+
+            return ( 20 * Math.Log10(constant) - 20 * Math.Log10(module));
 
         }
+
+       
     }
 }
